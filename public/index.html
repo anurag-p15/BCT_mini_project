@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dVoting App</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px; }
+        h1 { text-align: center; color: #333; }
+        #candidates { margin: 20px auto; max-width: 600px; }
+        .candidate { background: #fff; padding: 10px; margin: 10px 0; border-radius: 5px; box-shadow: 0 0 5px rgba(0, 0, 0, 0.1); }
+        .candidate h3 { margin: 0; }
+        input[type="number"] { padding: 10px; margin: 10px 0; width: calc(100% - 22px); }
+        button { padding: 10px 15px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>dVoting App</h1>
+    <div id="candidates"></div>
+
+    <h2>Vote for a Candidate</h2>
+    <input type="number" id="candidateId" placeholder="Candidate ID" required>
+    <button id="voteButton">Vote</button>
+    <button id="fetchVotesButton">Fetch Total Votes</button> <!-- Button to fetch total votes -->
+
+    <script>
+        async function fetchCandidates() {
+            const response = await fetch('/candidates');
+            const candidates = await response.json();
+            const candidatesDiv = document.getElementById('candidates');
+            candidatesDiv.innerHTML = ''; // Clear previous candidates
+
+            candidates.forEach(candidate => {
+                const candidateDiv = document.createElement('div');
+                candidateDiv.className = 'candidate';
+                candidateDiv.innerHTML = `
+                    <h3>ID: ${candidate.id}</h3>
+                    <p>Name: ${candidate.name}</p>
+                    <p>Total Votes: <span id="votes-${candidate.id}">${candidate.voteCount}</span></p> <!-- Display total votes -->
+                `;
+                candidatesDiv.appendChild(candidateDiv);
+            });
+        }
+
+        async function vote() {
+            const candidateId = document.getElementById('candidateId').value;
+            const response = await fetch(`/vote/${candidateId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const result = await response.json();
+            console.log(result); // You can display a message or update the UI
+            fetchCandidates(); // Refresh the candidates list
+        }
+
+        async function fetchTotalVotes() {
+            try {
+                const response = await fetch('/candidates'); // Ensure this is the correct endpoint
+                const candidates = await response.json();
+                // Update the UI with the total votes, if needed
+                console.log(candidates); // Debug log to check fetched data
+            } catch (error) {
+                console.error('Error fetching total votes:', error);
+            }
+        }
+        
+        document.getElementById('voteButton').addEventListener('click', vote);
+        document.getElementById('fetchVotesButton').addEventListener('click', fetchTotalVotes); // Add event listener for fetching votes
+        window.onload = fetchCandidates; // Fetch candidates on page load
+    </script>
+</body>
+</html>
